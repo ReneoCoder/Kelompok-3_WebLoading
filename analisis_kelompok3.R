@@ -8,8 +8,19 @@ data <- read_excel(
 print(data)
 
 requests <- data$Jumlah_Requests
-
 waktu <- data$Waktu_Muat_Detik
 
 print(requests)
 print(waktu)
+
+rata_rata <- mean(waktu)
+nilai_tengah <- median(waktu)
+maksimum <- max(waktu)
+minimum <- min(waktu)
+standar_deviasi <- sd(waktu)
+
+print(rata_rata)
+print(nilai_tengah)
+print(maksimum)
+print(minimum)
+print(standar_deviasi)
