@@ -1,162 +1,224 @@
 
+# ==========================================
+# ANALISIS DATA WEBSITE LOADING
+# KELOMPOK 3 - STATISTIK & PROBABILITAS
+# ==========================================
+
+
+# 1. MEMBACA DATA EXCEL
+
 library(readxl)
 
-# 1. FUNCTION MEMBACA DATA EXCEL
-
-baca_data <- function(file, sheet) {
-  data <- read_excel(file, sheet = sheet)
-
-  cat("\n=== DATASET ===\n")
-  print(data)
-
-  return(data)
-}
-
-
-# 2. FUNCTION STATISTIK DESKRIPTIF
-
-statistik_deskriptif <- function(data, kolom) {
-
-  nilai <- data[[kolom]]
-
-  hasil <- data.frame(
-    Rata_Rata = mean(nilai, na.rm = TRUE),
-    Median = median(nilai, na.rm = TRUE),
-    Maksimum = max(nilai, na.rm = TRUE),
-    Minimum = min(nilai, na.rm = TRUE),
-    Standar_Deviasi = sd(nilai, na.rm = TRUE)
-  )
-
-  cat("\n=== STATISTIK DESKRIPTIF ===\n")
-  print(hasil)
-
-  return(invisible(hasil))
-}
-
-
-# 3. FUNCTION HISTOGRAM
-
-grafik_histogram <- function(data, kolom,
-                             judul = "Histogram",
-                             warna = "skyblue") {
-
-  nilai <- data[[kolom]]
-
-  hist(
-    nilai,
-    main = judul,
-    xlab = kolom,
-    ylab = "Frekuensi",
-    col = warna
-  )
-}
-
-
-# 4. FUNCTION PERBANDINGAN KELOMPOK
-
-grafik_perbandingan <- function(data, kategori, nilai,
-                               judul = "Perbandingan Rata-rata",
-                               warna = "lightblue") {
-
-  # Menghitung rata-rata berdasarkan kategori
-  hasil <- aggregate(
-    data[[nilai]],
-    by = list(Kategori = data[[kategori]]),
-    FUN = function(x) mean(x, na.rm = TRUE)
-  )
-
-  names(hasil)[2] <- "Rata_Rata"
-
-  cat("\n=== RATA-RATA PER KATEGORI ===\n")
-  print(hasil)
-
-  # Membuat bar chart
-  barplot(
-    hasil$Rata_Rata,
-    names.arg = hasil$Kategori,
-    main = judul,
-    xlab = kategori,
-    ylab = paste("Rata-rata", nilai),
-    col = warna
-  )
-
-  return(invisible(hasil))
-}
-
-
-# 5. FUNCTION ANALISIS KORELASI
-
-analisis_korelasi <- function(data, kolom_x, kolom_y,
-                              judul = "Analisis Korelasi") {
-
-  x <- data[[kolom_x]]
-  y <- data[[kolom_y]]
-
-  # Menghitung korelasi Pearson
-  korelasi <- cor(
-    x, y,
-    method = "pearson",
-    use = "complete.obs"
-  )
-
-  cat("\n=== HASIL KORELASI ===\n")
-  print(korelasi)
-
-  # Scatter plot
-  plot(
-    x, y,
-    main = judul,
-    xlab = kolom_x,
-    ylab = kolom_y,
-    col = "blue",
-    pch = 19
-  )
-
-  # Model regresi linear
-  model <- lm(y ~ x)
-
-  # Menambahkan garis regresi
-  abline(
-    model,
-    col = "red",
-    lwd = 2
-  )
-
-  return(invisible(list(
-    korelasi = korelasi,
-    model = model
-  )))
-}
-
-
-# 6. PROGRAM UTAMA
-
-data <- baca_data(
+data <- read_excel(
   "Dataset_Tugas_Kelompok_Statistik_Mhs.xlsx",
-  "Kel3_WebLoading"
+  sheet = "Kel3_WebLoading"
 )
 
-statistik_deskriptif(
-  data,
-  "Waktu_Muat_Detik"
+# Menampilkan isi dataset
+print(data)
+
+# Melihat struktur dataset
+str(data)
+
+
+# ==========================================
+# 2. MENGAMBIL KOLOM DATA
+# ==========================================
+
+# Mengambil jumlah HTTP requests
+requests <- data$Jumlah_Requests
+
+# Mengambil waktu loading website
+waktu <- data$Waktu_Muat_Detik
+
+# Menampilkan masing-masing vector
+print(requests)
+print(waktu)
+
+
+# ==========================================
+# 3. STATISTIK DESKRIPTIF
+# ==========================================
+
+# Menghitung jumlah observasi
+jumlah_data <- length(waktu)
+
+# Menghitung rata-rata
+rata_rata <- mean(waktu)
+
+# Menghitung median
+nilai_tengah <- median(waktu)
+
+# Mengambil nilai maksimum
+maksimum <- max(waktu)
+
+# Mengambil nilai minimum
+minimum <- min(waktu)
+
+# Menghitung standar deviasi sampel
+standar_deviasi <- sd(waktu)
+
+# Menghitung varians sampel
+varians <- var(waktu)
+
+# Menghitung kuartil
+kuartil <- quantile(waktu)
+
+# Menampilkan hasil statistik
+cat("\n=== STATISTIK DESKRIPTIF ===\n")
+
+cat("Jumlah Data     :", jumlah_data, "\n")
+cat("Rata-rata       :", rata_rata, "\n")
+cat("Median          :", nilai_tengah, "\n")
+cat("Maksimum        :", maksimum, "\n")
+cat("Minimum         :", minimum, "\n")
+cat("Standar Deviasi :", standar_deviasi, "\n")
+cat("Varians         :", varians, "\n")
+print(kuartil)
+
+
+# ==========================================
+# 4. HISTOGRAM WAKTU LOADING
+# ==========================================
+
+hist(
+  waktu,
+  main = "Distribusi Waktu Loading Website",
+  xlab = "Waktu Loading (Detik)",
+  ylab = "Frekuensi",
+  col = "skyblue"
 )
 
-grafik_histogram(
-  data,
-  "Waktu_Muat_Detik",
-  "Distribusi Waktu Loading Website"
+
+# ==========================================
+# 5. RATA-RATA BERDASARKAN JENIS SITUS
+# ==========================================
+
+# Mengelompokkan data berdasarkan jenis situs
+rata_per_jenis <- aggregate(
+  Waktu_Muat_Detik ~ Jenis_Situs,
+  data = data,
+  FUN = mean
 )
 
-grafik_perbandingan(
-  data,
-  "Jenis_Situs",
-  "Waktu_Muat_Detik",
-  "Perbandingan Waktu Loading Website"
+# Menampilkan hasil
+cat("\n=== RATA-RATA PER JENIS SITUS ===\n")
+print(rata_per_jenis)
+
+# Membuat bar chart
+barplot(
+  rata_per_jenis$Waktu_Muat_Detik,
+  names.arg = rata_per_jenis$Jenis_Situs,
+  main = "Perbandingan Waktu Loading Website",
+  xlab = "Jenis Website",
+  ylab = "Rata-rata Waktu (Detik)",
+  col = "lightblue"
 )
 
-analisis_korelasi(
-  data,
-  "Jumlah_Requests",
-  "Waktu_Muat_Detik",
-  "Hubungan Requests dan Waktu Loading"
+
+# ==========================================
+# 6. KATEGORI KECEPATAN WEBSITE
+# ==========================================
+
+# Menghitung jumlah setiap kategori
+kategori <- table(data$Kategori_Kecepatan)
+
+cat("\n=== KATEGORI KECEPATAN ===\n")
+print(kategori)
+
+# Membuat grafik kategori
+barplot(
+  kategori,
+  main = "Kategori Kecepatan Website",
+  xlab = "Kategori Kecepatan",
+  ylab = "Jumlah Website",
+  col = "orange"
 )
+
+
+# ==========================================
+# 7. ANALISIS KORELASI
+# ==========================================
+
+# Menghitung korelasi Pearson
+korelasi <- cor(
+  requests,
+  waktu,
+  method = "pearson"
+)
+
+cat("\n=== HASIL KORELASI ===\n")
+print(korelasi)
+
+
+# ==========================================
+# 8. SCATTER PLOT DAN REGRESI
+# ==========================================
+
+# Membuat scatter plot
+plot(
+  requests,
+  waktu,
+  main = "Hubungan Requests dan Waktu Loading",
+  xlab = "Jumlah HTTP Requests",
+  ylab = "Waktu Loading (Detik)",
+  col = "blue",
+  pch = 19
+)
+
+# Membuat model regresi linear
+model <- lm(waktu ~ requests)
+
+# Menambahkan garis regresi
+abline(
+  model,
+  col = "red",
+  lwd = 2
+)
+
+# Menampilkan ringkasan regresi
+cat("\n=== HASIL REGRESI ===\n")
+print(summary(model))
+
+
+# ==========================================
+# 9. ANALISIS OUTLIER
+# ==========================================
+
+# Membuat boxplot
+boxplot(
+  waktu,
+  main = "Boxplot Waktu Loading Website",
+  ylab = "Waktu Loading (Detik)",
+  col = "lightgreen"
+)
+
+# Mengidentifikasi nilai outlier berdasarkan IQR
+outlier <- boxplot.stats(waktu)$out
+
+cat("\n=== DATA OUTLIER ===\n")
+print(outlier)
+
+# Mengambil data tanpa observasi outlier
+data_normal <- data[!waktu %in% outlier, ]
+
+# Menghitung ulang korelasi
+korelasi_normal <- cor(
+  data_normal$Jumlah_Requests,
+  data_normal$Waktu_Muat_Detik
+)
+
+cat("\n=== KORELASI TANPA OUTLIER ===\n")
+print(korelasi_normal)
+
+
+# ==========================================
+# 10. KESIMPULAN AWAL
+# ==========================================
+
+cat("\n=== RINGKASAN ANALISIS ===\n")
+
+cat("Total observasi :", jumlah_data, "\n")
+cat("Rata-rata waktu loading :", rata_rata, "detik\n")
+cat("Korelasi awal :", korelasi, "\n")
+cat("Korelasi tanpa outlier :", korelasi_normal, "\n")
